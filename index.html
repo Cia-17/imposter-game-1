@@ -778,12 +778,22 @@ function startJoinRetry(player) {
   stopJoinRetry();
   // Send immediately, then retry
   channel.postMessage({ type: 'PLAYER_JOIN', senderId: player.id, player });
+  
+  // Also request state every 500ms to force sync
+  let requestCount = 0;
   joinRetryInterval = setInterval(() => {
     if (pendingJoinPlayer && channel) {
       channel.postMessage({ type: 'PLAYER_JOIN', senderId: pendingJoinPlayer.id, player: pendingJoinPlayer });
+      // Every 2nd request, ask for state explicitly
+      if (requestCount % 2 === 0) {
+        channel.postMessage({ type: 'REQUEST_STATE', senderId: pendingJoinPlayer.id });
+      }
+      requestCount++;
     }
-  }, 800);
+  }, 500);
 }
+
+
 function stopJoinRetry() {
   if (joinRetryInterval) { clearInterval(joinRetryInterval); joinRetryInterval = null; }
 }
@@ -800,37 +810,68 @@ function broadcastState() {
   channel.postMessage({ type: 'FULL_STATE', state: JSON.parse(JSON.stringify(state)) });
 }
 
+
 function handleMessage(msg) {
-  // Block echoes of our own channel posts. Allow direct 'self' calls from host logic.
-  if (msg.senderId === state.myId && msg.type !== 'FULL_STATE') return;
+  // Block echoes of our own channel posts
+  if (msg.senderId === state.myId) return;
 
   switch (msg.type) {
     case 'FULL_STATE':
       if (!state.isHost) {
         stopJoinRetry(); // we're synced — stop hammering the host
-        const prev = state.phase;
-        state = { ...state, ...msg.state,
-          myId: state.myId, myName: state.myName, isHost: false };
-        if (state.phase !== prev) {
+        const prevPhase = state.phase;
+        
+        // Properly merge the state without losing local critical properties
+        const newState = JSON.parse(JSON.stringify(msg.state));
+        newState.myId = state.myId;
+        newState.myName = state.myName;
+        newState.isHost = false;
+        
+        // Preserve the joining player in the players list if not present
+        const joiningPlayer = pendingJoinPlayer;
+        if (joiningPlayer && !newState.players.find(p => p.id === joiningPlayer.id)) {
+          newState.players.push(joiningPlayer);
+          newState.scores[joiningPlayer.id] = 0;
+        }
+        
+        state = newState;
+        
+        // Force re-render lobby to show the correct player list
+        if (state.phase === 'lobby') {
+          renderLobby();
+        }
+        
+        if (state.phase !== prevPhase) {
           renderPhase();
         } else {
           updateUI();
         }
-        // Always re-render lobby so joiner sees the player list
-        if (state.phase === 'lobby') renderLobby();
+        
+        // Clear pending join after successful sync
+        pendingJoinPlayer = null;
       }
       break;
     case 'HOST_HERE':
       // Host just announced itself — if we're a pending joiner, re-send our join
       if (!state.isHost && pendingJoinPlayer && state.phase === 'lobby') {
         channel.postMessage({ type: 'PLAYER_JOIN', senderId: pendingJoinPlayer.id, player: pendingJoinPlayer });
+        // Also request full state
+        setTimeout(() => {
+          channel.postMessage({ type: 'REQUEST_STATE', senderId: state.myId });
+        }, 100);
+      }
+      break;
+    case 'REQUEST_STATE':
+      if (state.isHost) {
+        broadcastState();
       }
       break;
     case 'PLAYER_JOIN':
       if (state.isHost) {
         // Idempotent — ignore if this player is already in the room
         if (state.players.find(p => p.id === msg.player.id)) {
-          broadcastState(); // re-sync them anyway in case they missed it
+          // Still send current state to them in case they missed it
+          broadcastState();
           return;
         }
         if (state.players.length >= state.settings.maxPlayers) {
@@ -841,22 +882,38 @@ function handleMessage(msg) {
           channel.postMessage({ type: 'JOIN_REJECTED', targetId: msg.player.id, reason: 'Game already started!' });
           return;
         }
+        
+        // Add the player
         state.players.push(msg.player);
         state.scores[msg.player.id] = 0;
+        
+        // Broadcast the updated state to ALL players
         broadcastState();
         notify(`${msg.player.name} joined! 🎉`, 'success');
+        
+        // Also update the host's lobby view immediately
+        if (state.phase === 'lobby') {
+          renderLobby();
+        }
       }
       break;
     case 'JOIN_REJECTED':
       if (msg.targetId === state.myId) {
         notify(msg.reason, 'error');
         showScreen('home');
+        if (channel) channel.close();
+        stopJoinRetry();
+        pendingJoinPlayer = null;
       }
       break;
     case 'PLAYER_LEAVE':
       if (state.isHost) {
         state.players = state.players.filter(p => p.id !== msg.playerId);
+        delete state.scores[msg.playerId];
         broadcastState();
+        if (state.phase === 'lobby') {
+          renderLobby();
+        }
       }
       break;
     case 'START_GAME':
@@ -914,6 +971,7 @@ function handleMessage(msg) {
       break;
   }
 }
+
 
 // ---- Host: start round ----
 function startRound() {
@@ -1145,19 +1203,30 @@ function joinGame() {
   startJoinRetry(joiningPlayer); // keeps retrying until host responds with FULL_STATE
 
   // Show a basic lobby with room code so the joiner isn't staring at a blank screen
-  state.players = [];
+  state.players = [joiningPlayer]; // Start with self in the list
+  state.scores = { [state.myId]: 0 };
   state.settings = { maxPlayers: 6, impostorCount: 1, drawTime: 30, numRounds: 3 };
   document.getElementById('displayRoomCode').textContent = code;
   document.getElementById('s-maxPlayers').textContent = '...';
   document.getElementById('s-impostors').textContent = '...';
   document.getElementById('s-drawTime').textContent = '...';
   document.getElementById('s-rounds').textContent = '...';
-  document.getElementById('playerCountBadge').textContent = '';
-  document.getElementById('lobbyPlayerList').innerHTML = `<div style="color:var(--text-dim);text-align:center;padding:20px">Connecting to room...</div>`;
-  document.getElementById('startBtnWrap').innerHTML = `<div style="text-align:center;color:var(--text-dim);font-size:0.9rem;padding:10px">⏳ Waiting for host to start...</div>`;
+  
+  // Show waiting state
+  const list = document.getElementById('lobbyPlayerList');
+  list.innerHTML = `<div class="player-item">
+    <div class="player-avatar" style="background:${joiningPlayer.color}20;color:${joiningPlayer.color}">${joiningPlayer.avatar}</div>
+    <div class="player-name">${joiningPlayer.name} (you)</div>
+    <div class="player-badge badge-waiting">🟡 Waiting</div>
+  </div>`;
+  document.getElementById('playerCountBadge').textContent = `(1/?)`;
+  document.getElementById('startBtnWrap').innerHTML = `<div style="text-align:center;color:var(--text-dim);font-size:0.9rem;padding:10px">⏳ Waiting for host to sync...</div>`;
+  
   showScreen('lobby');
   notify('Joining room... waiting for host to sync', 'info');
 }
+
+
 
 // ---- LOBBY ----
 function renderLobby() {
