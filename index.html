@@ -755,7 +755,9 @@ function initChannel(roomCode) {
 
 function broadcast(msg) {
   if (channel) channel.postMessage({ ...msg, senderId: state.myId });
-  if (msg.type !== 'FULL_STATE') handleMessage({ ...msg, senderId: state.myId });
+  // Do NOT call handleMessage on ourselves — it causes double-execution of host logic
+  // (e.g. TURN_DONE would advance the turn twice). The host acts directly; only
+  // non-host players trigger host logic via the channel.
 }
 
 function broadcastState() {
@@ -764,6 +766,7 @@ function broadcastState() {
 }
 
 function handleMessage(msg) {
+  // Block echoes of our own channel posts. Allow direct 'self' calls from host logic.
   if (msg.senderId === state.myId && msg.type !== 'FULL_STATE') return;
 
   switch (msg.type) {
@@ -772,8 +775,13 @@ function handleMessage(msg) {
         const prev = state.phase;
         state = { ...state, ...msg.state,
           myId: state.myId, myName: state.myName, isHost: false };
-        if (state.phase !== prev) renderPhase();
-        else updateUI();
+        if (state.phase !== prev) {
+          renderPhase();
+        } else {
+          updateUI();
+        }
+        // Always re-render lobby so joiner sees the player list
+        if (state.phase === 'lobby') renderLobby();
       }
       break;
     case 'PLAYER_JOIN':
@@ -892,13 +900,13 @@ function beginDrawingPhase() {
   state.readyPlayers = [];
   broadcastState();
   renderPhase();
-  if (state.isHost) {
-    startTurnTimer();
-  }
+  // renderPhase -> renderDrawing -> updateDrawingUI handles non-host timer
+  // host timer is started inside renderPhase case 'drawing'
 }
 
 function advanceTurn() {
   clearInterval(timerInterval);
+  timerInterval = null;
   state.currentTurnIdx++;
   if (state.currentTurnIdx >= state.turnOrder.length) {
     state.phase = 'voting';
@@ -1091,8 +1099,19 @@ function joinGame() {
     }
   });
 
+  // Show a basic lobby with room code so the joiner isn't staring at a blank screen
+  state.players = [];
+  state.settings = { maxPlayers: 6, impostorCount: 1, drawTime: 30, numRounds: 3 };
+  document.getElementById('displayRoomCode').textContent = code;
+  document.getElementById('s-maxPlayers').textContent = '...';
+  document.getElementById('s-impostors').textContent = '...';
+  document.getElementById('s-drawTime').textContent = '...';
+  document.getElementById('s-rounds').textContent = '...';
+  document.getElementById('playerCountBadge').textContent = '';
+  document.getElementById('lobbyPlayerList').innerHTML = `<div style="color:var(--text-dim);text-align:center;padding:20px">Connecting to room...</div>`;
+  document.getElementById('startBtnWrap').innerHTML = `<div style="text-align:center;color:var(--text-dim);font-size:0.9rem;padding:10px">⏳ Waiting for host to start...</div>`;
   showScreen('lobby');
-  notify('Joining room...', 'info');
+  notify('Joining room... waiting for host to sync', 'info');
 }
 
 // ---- LOBBY ----
@@ -1166,7 +1185,20 @@ function renderRoleReveal() {
 function readyUp() {
   document.getElementById('readyBtn').disabled = true;
   document.getElementById('readyBtn').textContent = '✅ Waiting for others...';
-  broadcast({ type: 'PLAYER_READY', playerId: state.myId });
+  if (state.isHost) {
+    // Host handles directly — bypass the senderId filter
+    if (!state.readyPlayers.includes(state.myId)) {
+      state.readyPlayers.push(state.myId);
+    }
+    const activePlayers = state.players.filter(p => !state.eliminated.includes(p.id));
+    if (state.readyPlayers.length >= activePlayers.length) {
+      beginDrawingPhase();
+    } else {
+      broadcastState();
+    }
+  } else {
+    broadcast({ type: 'PLAYER_READY', playerId: state.myId });
+  }
 }
 
 // ---- DRAWING PHASE ----
@@ -1243,13 +1275,8 @@ function updateDrawingUI() {
   const currentDrawer = getPlayer(currentDrawerId);
   const isMyTurn = currentDrawerId === state.myId && !isEliminated(state.myId);
   
-  if (state.isHost && !isMyTurn && state.phase === 'drawing') {
-    timerValue = state.settings.drawTime;
-    updateTimerUI();
-  }
-
   document.getElementById('currentDrawerEmoji').textContent = currentDrawer?.avatar || '🎨';
-  document.getElementById('currentDrawerName').textContent = (isMyTurn && !state.isHost) ? 'You!' : (currentDrawer?.name || '...');
+  document.getElementById('currentDrawerName').textContent = isMyTurn ? 'You!' : (currentDrawer?.name || '...');
 
   const dots = document.getElementById('turnOrderDots');
   dots.innerHTML = state.turnOrder.map((id, i) => {
@@ -1286,6 +1313,7 @@ function updateDrawingUI() {
     toolbar.style.pointerEvents = 'auto';
     document.getElementById('drawHintLeft').textContent = `✏️ Your turn to draw!`;
     document.getElementById('drawHintRight').textContent = `Word: ${myWord}`;
+    // Non-host drawer starts their own local countdown
     if (!state.isHost && !timerInterval) {
       startTurnTimerLocal();
     }
@@ -1405,19 +1433,23 @@ function clearCanvas() {
 }
 
 function endMyTurn() {
+  canDraw = false;
+  clearInterval(timerInterval);
+  timerInterval = null;
   const canvas = document.getElementById('gameCanvas');
   const dataURL = canvas.toDataURL();
   channel?.postMessage({ type: 'CANVAS_UPDATE', senderId: state.myId, dataURL });
-  broadcast({ type: 'TURN_DONE' });
-  canDraw = false;
   const overlay = document.getElementById('canvasOverlay');
   if (overlay) {
     overlay.classList.remove('hidden');
     document.getElementById('overlayText').textContent = '✅ Done! Waiting for next player...';
     document.getElementById('overlaySub').textContent = '';
   }
-  clearInterval(timerInterval);
-  timerInterval = null;
+  if (state.isHost) {
+    advanceTurn();
+  } else {
+    broadcast({ type: 'TURN_DONE' });
+  }
 }
 
 // ---- VOTING ----
@@ -1453,8 +1485,18 @@ function renderVoting() {
 function castVote(targetId) {
   if (isEliminated(state.myId)) return;
   if (state.votes[state.myId]) return;
-  broadcast({ type: 'VOTE_CAST', voterId: state.myId, targetId });
   notify("Vote cast! 🗳️", 'success');
+  if (state.isHost) {
+    state.votes[state.myId] = targetId;
+    const activePlayers = state.players.filter(p => !state.eliminated.includes(p.id));
+    if (Object.keys(state.votes).length >= activePlayers.length) {
+      tallyVotes();
+    } else {
+      broadcastState();
+    }
+  } else {
+    broadcast({ type: 'VOTE_CAST', voterId: state.myId, targetId });
+  }
   renderVoting();
 }
 
@@ -1626,6 +1668,9 @@ function renderPhase() {
     case 'drawing':
       showScreen('draw');
       renderDrawing();
+      if (state.isHost) {
+        startTurnTimer();
+      }
       break;
     case 'voting':
       renderVoting();
