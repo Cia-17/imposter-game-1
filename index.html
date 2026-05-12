@@ -1,0 +1,1720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doodoom 🎨</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0e17;
+    --surface: #1a1829;
+    --surface2: #241f38;
+    --accent: #ff6b6b;
+    --accent2: #ffd93d;
+    --accent3: #6bcb77;
+    --accent4: #4d96ff;
+    --accent5: #c77dff;
+    --text: #fffffe;
+    --text-dim: #a7a9be;
+    --border: rgba(255,255,255,0.08);
+    --radius: 16px;
+    --radius-sm: 10px;
+    --shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: radial-gradient(ellipse at 20% 20%, rgba(77,150,255,0.07) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 80%, rgba(199,125,255,0.07) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+
+  #app { position: relative; z-index: 1; }
+
+  /* ===== SCREENS ===== */
+  .screen { display: none; min-height: 100vh; }
+  .screen.active { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
+
+  /* ===== LOGO ===== */
+  .logo {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(3rem, 8vw, 5rem);
+    letter-spacing: 2px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 50%, var(--accent5) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none;
+    margin-bottom: 8px;
+  }
+  .logo-sub {
+    color: var(--text-dim);
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 40px;
+  }
+
+  /* ===== CARDS ===== */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: var(--shadow);
+  }
+  .card-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.4rem;
+    margin-bottom: 20px;
+    color: var(--accent2);
+  }
+
+  /* ===== BUTTONS ===== */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 14px 28px;
+    border-radius: var(--radius-sm);
+    border: none; cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800; font-size: 1rem;
+    transition: all 0.18s ease;
+    width: 100%; margin-top: 10px;
+    letter-spacing: 0.5px;
+  }
+  .btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+  .btn:active { transform: translateY(0); }
+  .btn-primary { background: linear-gradient(135deg, var(--accent), #ff8e53); color: #fff; }
+  .btn-secondary { background: linear-gradient(135deg, var(--accent4), #738fff); color: #fff; }
+  .btn-success { background: linear-gradient(135deg, var(--accent3), #4ade80); color: #1a1829; }
+  .btn-purple { background: linear-gradient(135deg, var(--accent5), #e879f9); color: #fff; }
+  .btn-ghost { background: var(--surface2); color: var(--text-dim); border: 1px solid var(--border); }
+  .btn-ghost:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+  .btn-sm { padding: 8px 16px; font-size: 0.85rem; margin-top: 0; width: auto; }
+  .btn-danger { background: linear-gradient(135deg, #ff4444, #cc0000); color: #fff; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  #readyBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ===== INPUTS ===== */
+  .input-group { margin-bottom: 16px; }
+  .input-group label {
+    display: block; font-weight: 700; font-size: 0.85rem;
+    color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  input[type="text"], input[type="number"] {
+    width: 100%; padding: 12px 16px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--text);
+    font-family: 'Nunito', sans-serif; font-size: 1rem; font-weight: 600;
+    outline: none; transition: border-color 0.2s;
+  }
+  input:focus { border-color: var(--accent4); }
+  input[type="range"] { width: 100%; accent-color: var(--accent4); }
+  .range-val { font-weight: 800; color: var(--accent4); font-size: 1.1rem; }
+
+  /* ===== TABS ===== */
+  .tabs { display: flex; gap: 4px; margin-bottom: 24px; background: var(--surface2); padding: 4px; border-radius: var(--radius-sm); }
+  .tab {
+    flex: 1; padding: 10px; text-align: center; border-radius: 7px;
+    cursor: pointer; font-weight: 700; font-size: 0.9rem;
+    color: var(--text-dim); transition: all 0.2s;
+  }
+  .tab.active { background: var(--accent4); color: #fff; }
+
+  /* ===== LOBBY ===== */
+  #screen-lobby { padding: 16px; }
+  .lobby-layout { display: flex; gap: 20px; width: 100%; max-width: 900px; flex-wrap: wrap; }
+  .lobby-left { flex: 1; min-width: 280px; }
+  .lobby-right { flex: 1; min-width: 280px; }
+
+  .room-code-display {
+    background: var(--surface2); border: 2px dashed var(--accent2);
+    border-radius: var(--radius-sm); padding: 16px; text-align: center; margin-bottom: 16px;
+  }
+  .room-code-display .code {
+    font-family: 'Fredoka One', cursive; font-size: 2.5rem;
+    color: var(--accent2); letter-spacing: 6px;
+  }
+  .room-code-display .code-label { font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 2px; }
+
+  .player-list { display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto; }
+  .player-item {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--surface2); border-radius: var(--radius-sm); padding: 10px 14px;
+    border: 1px solid var(--border); transition: all 0.2s;
+  }
+  .player-item.host { border-color: var(--accent2); }
+  .player-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; flex-shrink: 0;
+  }
+  .player-name { font-weight: 700; font-size: 0.95rem; flex: 1; }
+  .player-badge {
+    font-size: 0.7rem; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 1px; padding: 3px 8px; border-radius: 20px;
+  }
+  .badge-host { background: var(--accent2); color: #1a1829; }
+  .badge-ready { background: var(--accent3); color: #1a1829; }
+  .badge-waiting { background: var(--surface); color: var(--text-dim); border: 1px solid var(--border); }
+
+  .settings-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 0; border-bottom: 1px solid var(--border);
+  }
+  .settings-row:last-child { border-bottom: none; }
+  .settings-row label { font-weight: 700; color: var(--text-dim); font-size: 0.9rem; }
+
+  /* ===== ROLE REVEAL ===== */
+  .role-card {
+    text-align: center; padding: 40px 32px;
+    animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes popIn { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .role-icon { font-size: 5rem; margin-bottom: 16px; display: block; }
+  .role-title { font-family: 'Fredoka One', cursive; font-size: 2rem; margin-bottom: 8px; }
+  .role-word {
+    background: var(--surface2); border-radius: var(--radius-sm);
+    padding: 16px 24px; margin: 20px auto; display: inline-block;
+    border: 2px solid var(--accent4);
+  }
+  .role-word .word { font-family: 'Fredoka One', cursive; font-size: 2rem; color: var(--accent4); }
+  .role-word .word-label { font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 2px; }
+
+  /* ===== DRAWING SCREEN ===== */
+  #screen-draw { padding: 12px; align-items: stretch; }
+  .draw-layout { display: flex; gap: 16px; width: 100%; max-width: 1100px; height: calc(100vh - 24px); }
+  .draw-sidebar { width: 200px; display: flex; flex-direction: column; gap: 12px; flex-shrink: 0; }
+  .draw-main { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+
+  .hud-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 12px;
+  }
+  .hud-card-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; color: var(--text-dim); margin-bottom: 8px; font-weight: 700; }
+
+  .timer-ring {
+    position: relative; width: 70px; height: 70px; margin: 0 auto;
+  }
+  .timer-ring svg { transform: rotate(-90deg); }
+  .timer-ring circle { fill: none; stroke-width: 6; }
+  .timer-ring .bg { stroke: var(--surface2); }
+  .timer-ring .progress { stroke: var(--accent3); stroke-linecap: round; transition: stroke-dashoffset 1s linear, stroke 0.5s; }
+  .timer-ring .time-text {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Fredoka One', cursive; font-size: 1.2rem; color: var(--text);
+  }
+
+  .current-drawer {
+    text-align: center; padding: 10px;
+  }
+  .drawer-emoji { font-size: 2rem; display: block; margin-bottom: 4px; }
+  .drawer-name { font-weight: 800; font-size: 0.9rem; word-break: break-word; }
+
+  .word-hint {
+    text-align: center; padding: 10px;
+    font-size: 0.75rem; color: var(--text-dim);
+  }
+  .word-hint .hint-text {
+    font-family: 'Fredoka One', cursive; font-size: 1.1rem;
+    color: var(--accent2); letter-spacing: 4px; word-spacing: 12px;
+  }
+  .hint-label { text-transform: uppercase; letter-spacing: 2px; font-size: 0.65rem; margin-bottom: 4px; }
+
+  .mini-players { display: flex; flex-direction: column; gap: 6px; }
+  .mini-player {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 8px; border-radius: 8px;
+    font-size: 0.82rem; font-weight: 700;
+    border: 1px solid transparent; transition: all 0.2s;
+  }
+  .mini-player.active { border-color: var(--accent4); background: rgba(77,150,255,0.1); }
+  .mini-player.eliminated { opacity: 0.4; text-decoration: line-through; }
+  .mini-player .mini-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
+  .mini-player .turn-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent4); margin-left: auto; flex-shrink: 0; }
+  .turn-order-dots { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+  .turn-dot-small { width: 10px; height: 10px; border-radius: 50%; background: var(--surface2); border: 2px solid var(--border); transition: all 0.3s; }
+  .turn-dot-small.done { background: var(--accent3); border-color: var(--accent3); }
+  .turn-dot-small.current { background: var(--accent4); border-color: var(--accent4); transform: scale(1.3); }
+
+  /* ===== CANVAS ===== */
+  .canvas-container {
+    flex: 1; position: relative; border-radius: var(--radius);
+    overflow: hidden; border: 2px solid var(--border);
+    background: #ffffff; min-height: 300px;
+  }
+  #gameCanvas { display: block; width: 100%; height: 100%; cursor: crosshair; }
+  .canvas-overlay {
+    position: absolute; inset: 0; background: rgba(15,14,23,0.85);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 12px; border-radius: var(--radius);
+    backdrop-filter: blur(4px);
+  }
+  .canvas-overlay.hidden { display: none; }
+  .canvas-overlay-text { font-family: 'Fredoka One', cursive; font-size: 1.5rem; color: var(--text); text-align: center; }
+  .canvas-overlay-sub { color: var(--text-dim); font-size: 0.9rem; text-align: center; }
+
+  .toolbar {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 10px 14px;
+  }
+  .tool-btn {
+    width: 36px; height: 36px; border-radius: 8px; border: 2px solid transparent;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; transition: all 0.15s; background: var(--surface2);
+  }
+  .tool-btn:hover { border-color: var(--accent4); }
+  .tool-btn.active { border-color: var(--accent4); background: rgba(77,150,255,0.15); }
+  .color-swatch {
+    width: 28px; height: 28px; border-radius: 6px; border: 2px solid transparent;
+    cursor: pointer; transition: all 0.15s; flex-shrink: 0;
+  }
+  .color-swatch:hover { transform: scale(1.15); }
+  .color-swatch.active { border-color: #fff; transform: scale(1.15); box-shadow: 0 0 0 2px var(--accent4); }
+  .size-slider { width: 80px; }
+  .toolbar-sep { width: 1px; height: 28px; background: var(--border); }
+  #colorPicker { width: 36px; height: 36px; border: none; border-radius: 8px; cursor: pointer; padding: 2px; background: var(--surface2); }
+  #canvasContainer { background: #fff; min-height: 400px; }
+  .border-red { border-left: 3px solid var(--accent); }
+
+  /* ===== VOTING ===== */
+  .vote-grid { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 500px; }
+  .vote-card {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--surface); border: 2px solid var(--border);
+    border-radius: var(--radius-sm); padding: 14px 18px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .vote-card:hover { border-color: var(--accent4); transform: translateX(4px); }
+  .vote-card.voted { border-color: var(--accent4); background: rgba(77,150,255,0.1); }
+  .vote-card.cannot-vote { opacity: 0.5; cursor: not-allowed; }
+  .vote-card.cannot-vote:hover { transform: none; border-color: var(--border); }
+  .vote-avatar { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
+  .vote-name { font-weight: 800; font-size: 1.1rem; flex: 1; }
+  .vote-bar-wrap { width: 100%; height: 6px; background: var(--surface2); border-radius: 3px; margin-top: 4px; overflow: hidden; }
+  .vote-bar { height: 100%; background: var(--accent4); border-radius: 3px; transition: width 0.8s ease; }
+  .vote-count { font-weight: 800; color: var(--accent4); font-size: 0.9rem; }
+
+  /* ===== RESULTS ===== */
+  .result-banner {
+    text-align: center; padding: 28px;
+    border-radius: var(--radius); margin-bottom: 20px; width: 100%; max-width: 500px;
+  }
+  .result-banner.correct { background: rgba(107, 203, 119, 0.15); border: 2px solid var(--accent3); }
+  .result-banner.incorrect { background: rgba(255, 107, 107, 0.15); border: 2px solid var(--accent); }
+  .result-banner .result-icon { font-size: 4rem; display: block; margin-bottom: 12px; }
+  .result-banner .result-title { font-family: 'Fredoka One', cursive; font-size: 1.8rem; margin-bottom: 8px; }
+
+  .impostor-reveal {
+    background: var(--surface2); border-radius: var(--radius-sm);
+    padding: 16px; margin: 12px 0; width: 100%; max-width: 500px;
+  }
+  .impostor-item { display: flex; align-items: center; gap: 12px; padding: 8px 0; }
+  .impostor-badge { padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; }
+  .badge-impostor { background: var(--accent); color: #fff; }
+  .badge-crewmate { background: var(--accent4); color: #fff; }
+
+  /* ===== SCOREBOARD ===== */
+  .score-list { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 500px; }
+  .score-item {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--surface); border-radius: var(--radius-sm);
+    padding: 12px 16px; border: 1px solid var(--border);
+  }
+  .score-rank { font-family: 'Fredoka One', cursive; font-size: 1.3rem; width: 30px; text-align: center; }
+  .score-name { flex: 1; font-weight: 700; }
+  .score-pts { font-family: 'Fredoka One', cursive; font-size: 1.2rem; color: var(--accent2); }
+
+  /* ===== NOTIFICATION ===== */
+  #notification {
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-80px);
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 12px 24px;
+    font-weight: 700; font-size: 0.95rem;
+    box-shadow: var(--shadow); z-index: 9999;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    max-width: 360px; text-align: center;
+  }
+  #notification.show { transform: translateX(-50%) translateY(0); }
+  #notification.info { border-color: var(--accent4); color: var(--accent4); }
+  #notification.success { border-color: var(--accent3); color: var(--accent3); }
+  #notification.warning { border-color: var(--accent2); color: var(--accent2); }
+  #notification.error { border-color: var(--accent); color: var(--accent); }
+
+  /* ===== ROUND BADGE ===== */
+  .round-badge {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 20px; padding: 5px 14px;
+    font-size: 0.8rem; font-weight: 800; color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 1px;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .round-badge span { color: var(--accent2); }
+
+  /* ===== MODAL ===== */
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000; padding: 20px; backdrop-filter: blur(4px);
+  }
+  .modal-backdrop.hidden { display: none; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 32px;
+    max-width: 480px; width: 100%;
+    animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    text-align: center;
+  }
+
+  .drawing-hint-bar {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 8px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 0.85rem;
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 3px; }
+
+  @media (max-width: 700px) {
+    .draw-layout { flex-direction: column; height: auto; }
+    .draw-sidebar { width: 100%; flex-direction: row; flex-wrap: wrap; }
+    .draw-sidebar .hud-card { flex: 1; min-width: 140px; }
+  }
+
+  .pulse { animation: pulse 1.5s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+  .wiggle { animation: wiggle 0.5s ease; }
+  @keyframes wiggle { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-6deg)} 75%{transform:rotate(6deg)} }
+
+  .fade-in { animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+  /* Word select screen */
+  .word-choices { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 20px; }
+  .word-choice {
+    background: var(--surface2); border: 2px solid var(--border);
+    border-radius: var(--radius-sm); padding: 14px 28px;
+    font-family: 'Fredoka One', cursive; font-size: 1.2rem;
+    cursor: pointer; transition: all 0.2s; color: var(--text);
+  }
+  .word-choice:hover { border-color: var(--accent4); background: rgba(77,150,255,0.1); transform: translateY(-3px); }
+
+  .impostor-word-note {
+    background: rgba(255,107,107,0.1); border: 1px solid var(--accent);
+    border-radius: var(--radius-sm); padding: 12px 18px; font-size: 0.85rem; margin-top: 16px; color: var(--text-dim);
+  }
+  .impostor-word-note strong { color: var(--accent); }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ===== HOME SCREEN ===== -->
+  <div id="screen-home" class="screen active">
+    <div class="logo">Doodoom</div>
+    <div class="logo-sub">Draw · Deceive · Discover</div>
+    <div class="card">
+      <div class="tabs">
+        <div class="tab active" onclick="window.switchTab('create')">🎮 Host Game</div>
+        <div class="tab" onclick="window.switchTab('join')">🔗 Join Game</div>
+      </div>
+
+      <div id="tab-create">
+        <div class="input-group">
+          <label>Your Name</label>
+          <input type="text" id="hostName" placeholder="e.g. SketchMaster" maxlength="16">
+        </div>
+        <div class="settings-row">
+          <label>Max Players</label>
+          <div style="display:flex;align-items:center;gap:10px">
+            <input type="range" id="maxPlayers" min="3" max="12" value="6" style="width:90px" oninput="document.getElementById('maxPlayersVal').textContent=this.value">
+            <span class="range-val" id="maxPlayersVal">6</span>
+          </div>
+        </div>
+        <div class="settings-row">
+          <label>Impostor Count</label>
+          <div style="display:flex;align-items:center;gap:10px">
+            <input type="range" id="impostorCount" min="1" max="4" value="1" style="width:90px" oninput="document.getElementById('impostorVal').textContent=this.value">
+            <span class="range-val" id="impostorVal">1</span>
+          </div>
+        </div>
+        <div class="settings-row">
+          <label>Draw Time (sec)</label>
+          <div style="display:flex;align-items:center;gap:10px">
+            <input type="range" id="drawTime" min="10" max="90" value="30" step="5" style="width:90px" oninput="document.getElementById('drawTimeVal').textContent=this.value">
+            <span class="range-val" id="drawTimeVal">30</span>
+          </div>
+        </div>
+        <div class="settings-row">
+          <label>Rounds</label>
+          <div style="display:flex;align-items:center;gap:10px">
+            <input type="range" id="numRounds" min="1" max="5" value="3" style="width:90px" oninput="document.getElementById('roundsVal').textContent=this.value">
+            <span class="range-val" id="roundsVal">3</span>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="window.hostGame()">🚀 Create Room</button>
+      </div>
+
+      <div id="tab-join" style="display:none">
+        <div class="input-group">
+          <label>Your Name</label>
+          <input type="text" id="joinName" placeholder="e.g. ArtNinja" maxlength="16">
+        </div>
+        <div class="input-group">
+          <label>Room Code</label>
+          <input type="text" id="joinCode" placeholder="e.g. DUCK42" maxlength="8" style="text-transform:uppercase;letter-spacing:4px;font-size:1.2rem">
+        </div>
+        <button class="btn btn-secondary" onclick="window.joinGame()">🔗 Join Room</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== LOBBY SCREEN ===== -->
+  <div id="screen-lobby" class="screen">
+    <div style="margin-bottom:20px;text-align:center">
+      <div class="logo" style="font-size:2.5rem">Doodoom</div>
+      <div class="round-badge">Lobby</div>
+    </div>
+    <div class="lobby-layout">
+      <div class="lobby-left">
+        <div class="card">
+          <div class="room-code-display">
+            <div class="code-label">Room Code</div>
+            <div class="code" id="displayRoomCode">----</div>
+            <div style="font-size:0.75rem;color:var(--text-dim);margin-top:6px">Share this with friends!</div>
+          </div>
+          <div class="card-title">⚙️ Settings</div>
+          <div class="settings-row"><label>Max Players</label><span id="s-maxPlayers" class="range-val">6</span></div>
+          <div class="settings-row"><label>Impostors</label><span id="s-impostors" class="range-val">1</span></div>
+          <div class="settings-row"><label>Draw Time</label><span id="s-drawTime" class="range-val">30s</span></div>
+          <div class="settings-row"><label>Rounds</label><span id="s-rounds" class="range-val">3</span></div>
+          <div id="startBtnWrap" style="margin-top:16px"></div>
+        </div>
+      </div>
+      <div class="lobby-right">
+        <div class="card" style="height:100%">
+          <div class="card-title">👥 Players <span id="playerCountBadge" style="color:var(--text-dim);font-size:0.85rem"></span></div>
+          <div class="player-list" id="lobbyPlayerList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ROLE REVEAL SCREEN ===== -->
+  <div id="screen-role" class="screen">
+    <div class="card role-card" style="max-width:420px;text-align:center">
+      <span class="role-icon" id="roleIcon">🎭</span>
+      <div class="role-title" id="roleTitle">Loading...</div>
+      <div id="roleWordWrap"></div>
+      <div id="roleDesc" style="color:var(--text-dim);font-size:0.9rem;margin-top:12px"></div>
+      <button class="btn btn-success" onclick="window.readyUp()" style="margin-top:24px" id="readyBtn">✅ I'm Ready!</button>
+    </div>
+    <div style="margin-top:16px;color:var(--text-dim);font-size:0.85rem" id="waitingReady">Waiting for others...</div>
+  </div>
+
+  <!-- ===== DRAWING SCREEN ===== -->
+  <div id="screen-draw" class="screen" style="justify-content:flex-start">
+    <div class="draw-layout">
+      <div class="draw-sidebar">
+        <div class="hud-card">
+          <div class="hud-card-title">⏱ Time Left</div>
+          <div class="timer-ring">
+            <svg width="70" height="70" viewBox="0 0 70 70">
+              <circle class="bg" cx="35" cy="35" r="29"/>
+              <circle class="progress" id="timerCircle" cx="35" cy="35" r="29" stroke-dasharray="182" stroke-dashoffset="0"/>
+            </svg>
+            <div class="time-text" id="timerText">30</div>
+          </div>
+        </div>
+        <div class="hud-card">
+          <div class="hud-card-title">🖊 Drawing Now</div>
+          <div class="current-drawer">
+            <span class="drawer-emoji" id="currentDrawerEmoji">🎨</span>
+            <div class="drawer-name" id="currentDrawerName">...</div>
+          </div>
+          <div class="turn-order-dots" id="turnOrderDots"></div>
+        </div>
+        <div class="hud-card" id="wordHintCard">
+          <div class="hud-card-title">💡 Your Word</div>
+          <div class="word-hint">
+            <div class="hint-text" id="wordHintText">_ _ _ _</div>
+          </div>
+        </div>
+        <div class="hud-card" style="flex:1;overflow:auto">
+          <div class="hud-card-title">👥 Players</div>
+          <div class="mini-players" id="miniPlayerList"></div>
+        </div>
+        <div class="round-badge" style="text-align:center;justify-content:center">Round <span id="roundIndicator">1</span>/<span id="totalRoundIndicator">3</span></div>
+      </div>
+      <div class="draw-main">
+        <div class="drawing-hint-bar">
+          <span>🎨 <strong id="drawHintLeft">Watch and guess who's the impostor!</strong></span>
+          <span id="drawHintRight" style="color:var(--text-dim);font-size:0.8rem"></span>
+        </div>
+        <div class="canvas-container" id="canvasContainer">
+          <canvas id="gameCanvas"></canvas>
+          <div class="canvas-overlay" id="canvasOverlay">
+            <div class="canvas-overlay-text" id="overlayText">⏳ Waiting...</div>
+            <div class="canvas-overlay-sub" id="overlaySub"></div>
+          </div>
+        </div>
+        <div class="toolbar" id="drawToolbar">
+          <button class="tool-btn active" id="tool-pen" onclick="window.setTool('pen')" title="Pen">✏️</button>
+          <button class="tool-btn" id="tool-eraser" onclick="window.setTool('eraser')" title="Eraser">🧹</button>
+          <div class="toolbar-sep"></div>
+          <div class="color-swatch active" style="background:#1a1a2e" data-color="#1a1a2e" onclick="window.setColor('#1a1a2e')"></div>
+          <div class="color-swatch" style="background:#e63946" data-color="#e63946" onclick="window.setColor('#e63946')"></div>
+          <div class="color-swatch" style="background:#f4a261" data-color="#f4a261" onclick="window.setColor('#f4a261')"></div>
+          <div class="color-swatch" style="background:#2a9d8f" data-color="#2a9d8f" onclick="window.setColor('#2a9d8f')"></div>
+          <div class="color-swatch" style="background:#457b9d" data-color="#457b9d" onclick="window.setColor('#457b9d')"></div>
+          <div class="color-swatch" style="background:#a8dadc" data-color="#a8dadc" onclick="window.setColor('#a8dadc')"></div>
+          <div class="color-swatch" style="background:#c77dff" data-color="#c77dff" onclick="window.setColor('#c77dff')"></div>
+          <div class="color-swatch" style="background:#ffffff" data-color="#ffffff" onclick="window.setColor('#ffffff')"></div>
+          <input type="color" id="colorPicker" value="#1a1a2e" onchange="window.setColor(this.value)" title="Custom color">
+          <div class="toolbar-sep"></div>
+          <input type="range" class="size-slider" id="brushSize" min="2" max="40" value="6" title="Brush Size">
+          <button class="tool-btn" onclick="window.clearCanvas()" title="Clear">🗑️</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== VOTING SCREEN ===== -->
+  <div id="screen-vote" class="screen">
+    <div style="text-align:center;margin-bottom:24px">
+      <div class="logo" style="font-size:2rem">Who's The Impostor? 🕵️</div>
+      <div class="round-badge" style="margin-top:8px">Round <span id="voteRoundNum">1</span> • Vote now!</div>
+      <div style="color:var(--text-dim);font-size:0.85rem;margin-top:8px" id="voteTimerText">⏱ Voting closes soon...</div>
+    </div>
+    <div class="vote-grid" id="voteGrid"></div>
+    <div id="voteStatus" style="margin-top:16px;color:var(--text-dim);font-size:0.85rem;text-align:center"></div>
+  </div>
+
+  <!-- ===== VOTE RESULT SCREEN ===== -->
+  <div id="screen-voteResult" class="screen">
+    <div class="result-banner" id="resultBanner">
+      <span class="result-icon" id="resultIcon">🎉</span>
+      <div class="result-title" id="resultTitle">The votes are in!</div>
+      <div id="resultDesc" style="color:var(--text-dim)"></div>
+    </div>
+    <div class="impostor-reveal" id="impostorReveal" style="width:100%;max-width:500px"></div>
+    <div style="margin-top:16px;text-align:center;color:var(--text-dim);font-size:0.85rem" id="resultContinueNote"></div>
+    <div id="resultBtnWrap" style="margin-top:20px;width:100%;max-width:300px"></div>
+  </div>
+
+  <!-- ===== GAME OVER SCREEN ===== -->
+  <div id="screen-gameover" class="screen">
+    <div class="logo" style="font-size:2.5rem;margin-bottom:8px">Game Over!</div>
+    <div class="result-banner" id="gameOverBanner" style="width:100%;max-width:500px">
+      <span class="result-icon" id="gameOverIcon">🏆</span>
+      <div class="result-title" id="gameOverTitle">Crewmates Win!</div>
+      <div id="gameOverDesc" style="color:var(--text-dim)"></div>
+    </div>
+    <div class="score-list" id="scoreList" style="margin-top:20px"></div>
+    <button class="btn btn-primary" onclick="window.backToHome()" style="max-width:300px;margin-top:24px">🏠 Back to Home</button>
+  </div>
+
+</div>
+
+<!-- Notification -->
+<div id="notification"></div>
+
+<!-- Role Peek Modal -->
+<div class="modal-backdrop hidden" id="peekModal">
+  <div class="modal">
+    <div style="font-size:3rem" id="peekIcon">🔍</div>
+    <div style="font-family:'Fredoka One',cursive;font-size:1.5rem;margin:12px 0" id="peekTitle">Your Role</div>
+    <div id="peekContent" style="color:var(--text-dim)"></div>
+    <button class="btn btn-ghost" onclick="window.closePeek()" style="margin-top:20px">Hide & Close</button>
+  </div>
+</div>
+
+<script>
+// =====================================================
+// DOODOOM - Multiplayer Drawing Impostor Game
+// State synced via BroadcastChannel (same origin, multi-tab)
+// =====================================================
+
+const WORD_BANK = [
+  // Easy
+  "cat","dog","sun","moon","tree","fish","bird","house","car","book",
+  "apple","pizza","cake","hat","shoe","door","cloud","star","rain","fire",
+  // Medium
+  "elephant","rainbow","guitar","mountain","castle","bicycle","umbrella","dolphin","penguin","cactus",
+  "volcano","pyramid","compass","lantern","telescope","anchor","lighthouse","parachute","robot","wizard",
+  // Hard
+  "democracy","electricity","meditation","constellation","architecture","photography","archaeology","philosophy","thermometer","submarine"
+];
+
+const AVATARS = ['🐱','🐶','🦊','🐸','🐼','🐨','🦁','🐯','🦋','🐧','🦅','🐙','🦄','🐲','🌸'];
+const COLORS = ['#ff6b6b','#ffd93d','#6bcb77','#4d96ff','#c77dff','#ff9f43','#48dbfb','#ff6348'];
+
+// ---- Game State ----
+let state = {
+  roomCode: '',
+  isHost: false,
+  myId: '',
+  myName: '',
+  players: [],
+  settings: { maxPlayers: 6, impostorCount: 1, drawTime: 30, numRounds: 3 },
+  phase: 'lobby',
+  round: 0,
+  impostors: [],
+  word: '',
+  impostorWord: '',
+  turnOrder: [],
+  currentTurnIdx: 0,
+  votes: {},
+  readyPlayers: [],
+  eliminated: [],
+  scores: {},
+  canvasDataURL: null,
+};
+
+let channel = null;
+let timerInterval = null;
+let timerValue = 0;
+
+// Drawing state
+let drawing = false;
+let tool = 'pen';
+let brushColor = '#1a1a2e';
+let brushSize = 6;
+let lastX = 0, lastY = 0;
+let ctx = null;
+let canDraw = false;
+let lastBroadcastTime = 0;
+const BROADCAST_THROTTLE = 16;
+
+// ---- ID / Utils ----
+function genId() { return Math.random().toString(36).slice(2,10); }
+function genRoomCode() { return Math.random().toString(36).slice(2,8).toUpperCase(); }
+function pickRandom(arr, n) {
+  const a = [...arr]; let res = [];
+  for (let i = 0; i < n && a.length; i++) {
+    const idx = Math.floor(Math.random() * a.length);
+    res.push(a.splice(idx, 1)[0]);
+  }
+  return res;
+}
+function getPlayer(id) { return state.players.find(p => p.id === id); }
+function getMe() { return getPlayer(state.myId); }
+function isImpostor(id) { return state.impostors.includes(id); }
+function isEliminated(id) { return state.eliminated.includes(id); }
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+}
+
+function notify(msg, type = 'info') {
+  const el = document.getElementById('notification');
+  el.textContent = msg;
+  el.className = type;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+function switchTab(tab) {
+  document.getElementById('tab-create').style.display = tab === 'create' ? 'block' : 'none';
+  document.getElementById('tab-join').style.display = tab === 'join' ? 'block' : 'none';
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    t.classList.toggle('active', (i === 0) === (tab === 'create'));
+  });
+}
+
+// ---- BroadcastChannel Sync ----
+function initChannel(roomCode) {
+  if (channel) channel.close();
+  channel = new BroadcastChannel('doodoom_' + roomCode);
+  channel.onmessage = (e) => handleMessage(e.data);
+}
+
+function broadcast(msg) {
+  if (channel) channel.postMessage({ ...msg, senderId: state.myId });
+  if (msg.type !== 'FULL_STATE') handleMessage({ ...msg, senderId: state.myId });
+}
+
+function broadcastState() {
+  if (!state.isHost) return;
+  channel.postMessage({ type: 'FULL_STATE', state: JSON.parse(JSON.stringify(state)) });
+}
+
+function handleMessage(msg) {
+  if (msg.senderId === state.myId && msg.type !== 'FULL_STATE') return;
+
+  switch (msg.type) {
+    case 'FULL_STATE':
+      if (!state.isHost) {
+        const prev = state.phase;
+        state = { ...state, ...msg.state,
+          myId: state.myId, myName: state.myName, isHost: false };
+        if (state.phase !== prev) renderPhase();
+        else updateUI();
+      }
+      break;
+    case 'PLAYER_JOIN':
+      if (state.isHost) {
+        if (state.players.length >= state.settings.maxPlayers) {
+          channel.postMessage({ type: 'JOIN_REJECTED', targetId: msg.player.id, reason: 'Room is full!' });
+          return;
+        }
+        if (state.phase !== 'lobby') {
+          channel.postMessage({ type: 'JOIN_REJECTED', targetId: msg.player.id, reason: 'Game already started!' });
+          return;
+        }
+        state.players.push(msg.player);
+        state.scores[msg.player.id] = 0;
+        broadcastState();
+        notify(`${msg.player.name} joined! 🎉`, 'success');
+      }
+      break;
+    case 'JOIN_REJECTED':
+      if (msg.targetId === state.myId) {
+        notify(msg.reason, 'error');
+        showScreen('home');
+      }
+      break;
+    case 'PLAYER_LEAVE':
+      if (state.isHost) {
+        state.players = state.players.filter(p => p.id !== msg.playerId);
+        broadcastState();
+      }
+      break;
+    case 'START_GAME':
+      if (state.isHost) startRound();
+      break;
+    case 'PLAYER_READY':
+      if (state.isHost) {
+        if (!state.readyPlayers.includes(msg.playerId)) {
+          state.readyPlayers.push(msg.playerId);
+        }
+        const activePlayers = state.players.filter(p => !state.eliminated.includes(p.id));
+        if (state.readyPlayers.length >= activePlayers.length) {
+          beginDrawingPhase();
+        } else {
+          broadcastState();
+        }
+      }
+      break;
+    case 'CANVAS_UPDATE':
+      if (!canDraw && ctx) {
+        applyCanvasData(msg.dataURL);
+      }
+      break;
+    case 'CANVAS_STROKE':
+      if (!canDraw && ctx) {
+        if (msg.clear) {
+          if (ctx) {
+            const canvas = document.getElementById('gameCanvas');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+          }
+        } else {
+          drawRemoteStroke(msg);
+        }
+      }
+      break;
+    case 'TURN_DONE':
+      if (state.isHost) {
+        advanceTurn();
+      }
+      break;
+    case 'VOTE_CAST':
+      if (state.isHost) {
+        state.votes[msg.voterId] = msg.targetId;
+        const activePlayers = state.players.filter(p => !state.eliminated.includes(p.id));
+        if (Object.keys(state.votes).length >= activePlayers.length) {
+          tallyVotes();
+        } else {
+          broadcastState();
+        }
+      }
+      break;
+    case 'NEXT_ROUND':
+      if (state.isHost) startRound();
+      break;
+  }
+}
+
+// ---- Host: start round ----
+function startRound() {
+  state.round++;
+  if (state.round > state.settings.numRounds) { endGame(); return; }
+
+  // Pick word
+  const wordPair = pickRandom(WORD_BANK, 1);
+  state.word = wordPair[0];
+  // Impostor sees alternate word
+  const altWords = WORD_BANK.filter(w => w !== state.word);
+  state.impostorWord = altWords.length > 0 ? pickRandom(altWords, 1)[0] : "mystery";
+
+  // Assign impostors
+  const activePlayers = state.players.filter(p => !isEliminated(p.id));
+  const maxImpostors = Math.min(state.settings.impostorCount, Math.floor(activePlayers.length / 2));
+  state.impostors = pickRandom(activePlayers.map(p => p.id), Math.max(1, maxImpostors));
+
+  // Turn order: active players shuffled
+  state.turnOrder = pickRandom(activePlayers.map(p => p.id), activePlayers.length);
+  state.currentTurnIdx = 0;
+  state.votes = {};
+  state.readyPlayers = [];
+  state.phase = 'roleReveal';
+  broadcastState();
+  renderPhase();
+}
+
+function beginDrawingPhase() {
+  state.phase = 'drawing';
+  state.readyPlayers = [];
+  broadcastState();
+  renderPhase();
+  if (state.isHost) {
+    startTurnTimer();
+  }
+}
+
+function advanceTurn() {
+  clearInterval(timerInterval);
+  state.currentTurnIdx++;
+  if (state.currentTurnIdx >= state.turnOrder.length) {
+    state.phase = 'voting';
+    state.votes = {};
+    broadcastState();
+    renderPhase();
+    if (state.isHost) {
+      startVoteTimer();
+    }
+  } else {
+    broadcastState();
+    updateDrawingUI();
+    if (state.isHost) {
+      startTurnTimer();
+    } else {
+      const currentDrawerId = state.turnOrder[state.currentTurnIdx];
+      if (currentDrawerId === state.myId) {
+        startTurnTimerLocal();
+      }
+    }
+  }
+}
+
+function startTurnTimer() {
+  clearInterval(timerInterval);
+  timerValue = state.settings.drawTime;
+  updateTimerUI();
+  timerInterval = setInterval(() => {
+    timerValue--;
+    updateTimerUI();
+    if (timerValue <= 0) {
+      clearInterval(timerInterval);
+      if (state.isHost) advanceTurn();
+    }
+  }, 1000);
+}
+
+function startTurnTimerLocal() {
+  clearInterval(timerInterval);
+  timerValue = state.settings.drawTime;
+  updateTimerUI();
+  timerInterval = setInterval(() => {
+    timerValue--;
+    updateTimerUI();
+    if (timerValue <= 0) {
+      clearInterval(timerInterval);
+      if (!state.isHost) {
+        endMyTurn();
+      }
+    }
+  }, 1000);
+}
+
+function startVoteTimer() {
+  clearInterval(timerInterval);
+  let vt = 30;
+  timerInterval = setInterval(() => {
+    vt--;
+    const el = document.getElementById('voteTimerText');
+    if (el) el.textContent = `⏱ ${vt}s to vote`;
+    if (vt <= 0) {
+      clearInterval(timerInterval);
+      if (state.isHost) {
+        tallyVotes();
+      }
+    }
+  }, 1000);
+}
+
+function tallyVotes() {
+  const voteCounts = {};
+  state.players.forEach(p => voteCounts[p.id] = 0);
+  Object.values(state.votes).forEach(targetId => {
+    if (voteCounts[targetId] !== undefined) voteCounts[targetId]++;
+  });
+
+  let maxVotes = 0;
+  let eliminated = null;
+  Object.entries(voteCounts).forEach(([id, cnt]) => {
+    if (!isEliminated(id) && cnt > maxVotes) { maxVotes = cnt; eliminated = id; }
+  });
+
+  state.lastVoteCounts = voteCounts;
+  state.lastEliminated = eliminated;
+
+  if (eliminated) {
+    state.eliminated.push(eliminated);
+    if (isImpostor(eliminated)) {
+      state.players.forEach(p => {
+        if (!isImpostor(p.id)) state.scores[p.id] = (state.scores[p.id] || 0) + 100;
+      });
+    } else {
+      state.impostors.forEach(id => {
+        state.scores[id] = (state.scores[id] || 0) + 150;
+      });
+    }
+  }
+
+  const remainingImpostors = state.impostors.filter(id => !isEliminated(id));
+  if (remainingImpostors.length === 0) {
+    state.phase = 'voteResult';
+    state.voteResultType = 'impostors_caught';
+    broadcastState();
+    renderPhase();
+    setTimeout(() => {
+      if (state.isHost) endGame('crewmates');
+    }, 8000);
+    return;
+  }
+
+  state.phase = 'voteResult';
+  state.voteResultType = eliminated ? (isImpostor(eliminated) ? 'impostor_caught' : 'wrong') : 'tie';
+  broadcastState();
+  renderPhase();
+}
+
+function endGame(forceWinner = null) {
+  clearInterval(timerInterval);
+  const remainingImpostors = state.impostors.filter(id => !isEliminated(id));
+  if (forceWinner) {
+    state.winner = forceWinner;
+  } else {
+    state.winner = remainingImpostors.length > 0 ? 'impostors' : 'crewmates';
+  }
+  state.phase = 'gameover';
+  broadcastState();
+  renderPhase();
+}
+
+// ---- HOST GAME ----
+function hostGame() {
+  const name = document.getElementById('hostName').value.trim();
+  if (!name) { notify('Enter your name!', 'warning'); return; }
+
+  state.myId = genId();
+  state.myName = name;
+  state.isHost = true;
+  state.roomCode = genRoomCode();
+
+  const avatarIdx = Math.floor(Math.random() * AVATARS.length);
+  const colorIdx = Math.floor(Math.random() * COLORS.length);
+  const me = {
+    id: state.myId, name, isHost: true,
+    avatar: AVATARS[avatarIdx], color: COLORS[colorIdx],
+    eliminated: false, score: 0
+  };
+
+  state.settings = {
+    maxPlayers: parseInt(document.getElementById('maxPlayers').value),
+    impostorCount: parseInt(document.getElementById('impostorCount').value),
+    drawTime: parseInt(document.getElementById('drawTime').value),
+    numRounds: parseInt(document.getElementById('numRounds').value),
+  };
+
+  state.players = [me];
+  state.scores = { [state.myId]: 0 };
+  state.phase = 'lobby';
+  state.eliminated = [];
+
+  initChannel(state.roomCode);
+  renderLobby();
+  showScreen('lobby');
+  setTimeout(broadcastState, 200);
+}
+
+// ---- JOIN GAME ----
+function joinGame() {
+  const name = document.getElementById('joinName').value.trim();
+  const code = document.getElementById('joinCode').value.trim().toUpperCase();
+  if (!name) { notify('Enter your name!', 'warning'); return; }
+  if (!code) { notify('Enter a room code!', 'warning'); return; }
+
+  state.myId = genId();
+  state.myName = name;
+  state.isHost = false;
+  state.roomCode = code;
+
+  const avatarIdx = Math.floor(Math.random() * AVATARS.length);
+  const colorIdx = Math.floor(Math.random() * COLORS.length);
+
+  initChannel(code);
+
+  channel.postMessage({
+    type: 'PLAYER_JOIN',
+    senderId: state.myId,
+    player: {
+      id: state.myId, name, isHost: false,
+      avatar: AVATARS[avatarIdx], color: COLORS[colorIdx],
+      eliminated: false, score: 0
+    }
+  });
+
+  showScreen('lobby');
+  notify('Joining room...', 'info');
+}
+
+// ---- LOBBY ----
+function renderLobby() {
+  document.getElementById('displayRoomCode').textContent = state.roomCode;
+  document.getElementById('s-maxPlayers').textContent = state.settings.maxPlayers;
+  document.getElementById('s-impostors').textContent = state.settings.impostorCount;
+  document.getElementById('s-drawTime').textContent = state.settings.drawTime + 's';
+  document.getElementById('s-rounds').textContent = state.settings.numRounds;
+
+  const count = state.players.length;
+  document.getElementById('playerCountBadge').textContent = `(${count}/${state.settings.maxPlayers})`;
+
+  const list = document.getElementById('lobbyPlayerList');
+  list.innerHTML = '';
+  state.players.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'player-item' + (p.isHost ? ' host' : '');
+    div.innerHTML = `
+      <div class="player-avatar" style="background:${p.color}20;color:${p.color}">${p.avatar}</div>
+      <div class="player-name">${p.name}</div>
+      <div class="player-badge ${p.isHost ? 'badge-host' : 'badge-waiting'}">${p.isHost ? '👑 Host' : '🟡 Waiting'}</div>
+    `;
+    list.appendChild(div);
+  });
+
+  const btnWrap = document.getElementById('startBtnWrap');
+  if (state.isHost) {
+    btnWrap.innerHTML = `<button class="btn btn-success" onclick="window.requestStart()" ${count < 3 ? 'disabled' : ''}>
+      ${count < 3 ? '⚠️ Need 3+ players' : '▶️ Start Game!'}
+    </button>`;
+  } else {
+    btnWrap.innerHTML = `<div style="text-align:center;color:var(--text-dim);font-size:0.9rem;padding:10px">⏳ Waiting for host to start...</div>`;
+  }
+}
+
+function requestStart() {
+  if (!state.isHost) return;
+  if (state.players.length < 3) { notify('Need at least 3 players!', 'warning'); return; }
+  startRound();
+}
+
+// ---- ROLE REVEAL ----
+function renderRoleReveal() {
+  const me = getMe();
+  const impostor = isImpostor(state.myId);
+
+  document.getElementById('roleIcon').textContent = impostor ? '🕵️' : '🎨';
+  document.getElementById('roleTitle').textContent = impostor ? "You're the Impostor!" : "You're a Crewmate!";
+  document.getElementById('roleIcon').parentElement.style.borderColor = impostor ? 'var(--accent)' : 'var(--accent4)';
+
+  const wordWrap = document.getElementById('roleWordWrap');
+  const myWord = impostor ? state.impostorWord : state.word;
+  wordWrap.innerHTML = `
+    <div class="role-word">
+      <div class="word-label">Your Word</div>
+      <div class="word">${myWord}</div>
+    </div>
+    ${impostor ? `<div class="impostor-word-note">⚠️ <strong>You have a different word!</strong> Try to blend in by drawing something related, but don't reveal you're the impostor!</div>` : ''}
+  `;
+
+  document.getElementById('roleDesc').textContent = impostor
+    ? "Draw subtly. Don't get caught. Vote strategically."
+    : "Draw clearly but watch out — someone's drawing the wrong thing!";
+
+  document.getElementById('waitingReady').textContent = "Tap ready when you've memorized your word!";
+  document.getElementById('readyBtn').disabled = false;
+  document.getElementById('readyBtn').textContent = '✅ I\'m Ready!';
+}
+
+function readyUp() {
+  document.getElementById('readyBtn').disabled = true;
+  document.getElementById('readyBtn').textContent = '✅ Waiting for others...';
+  broadcast({ type: 'PLAYER_READY', playerId: state.myId });
+}
+
+// ---- DRAWING PHASE ----
+function initCanvas() {
+  const canvas = document.getElementById('gameCanvas');
+  const container = document.getElementById('canvasContainer');
+  const rect = container.getBoundingClientRect();
+  canvas.width = rect.width - 4 || 700;
+  canvas.height = rect.height - 4 || 420;
+  ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  const startDrawHandler = (e) => {
+    e.preventDefault();
+    const rect2 = canvas.getBoundingClientRect();
+    const x = (e.clientX || (e.touches ? e.touches[0].clientX : 0)) - rect2.left;
+    const y = (e.clientY || (e.touches ? e.touches[0].clientY : 0)) - rect2.top;
+    startDraw({ offsetX: x, offsetY: y });
+  };
+  
+  const doDrawHandler = (e) => {
+    e.preventDefault();
+    const rect2 = canvas.getBoundingClientRect();
+    const x = (e.clientX || (e.touches ? e.touches[0].clientX : 0)) - rect2.left;
+    const y = (e.clientY || (e.touches ? e.touches[0].clientY : 0)) - rect2.top;
+    doDraw({ offsetX: x, offsetY: y });
+  };
+
+  canvas.removeEventListener('mousedown', startDrawHandler);
+  canvas.removeEventListener('mousemove', doDrawHandler);
+  canvas.removeEventListener('mouseup', stopDraw);
+  canvas.removeEventListener('mouseleave', stopDraw);
+  canvas.removeEventListener('touchstart', startDrawHandler);
+  canvas.removeEventListener('touchmove', doDrawHandler);
+  canvas.removeEventListener('touchend', stopDraw);
+  
+  canvas.addEventListener('mousedown', startDrawHandler);
+  canvas.addEventListener('mousemove', doDrawHandler);
+  canvas.addEventListener('mouseup', stopDraw);
+  canvas.addEventListener('mouseleave', stopDraw);
+  canvas.addEventListener('touchstart', startDrawHandler, { passive: false });
+  canvas.addEventListener('touchmove', doDrawHandler, { passive: false });
+  canvas.addEventListener('touchend', stopDraw);
+}
+
+function renderDrawing() {
+  if (!ctx) {
+    initCanvas();
+  } else {
+    const canvas = document.getElementById('gameCanvas');
+    const container = document.getElementById('canvasContainer');
+    const rect = container.getBoundingClientRect();
+    const newWidth = rect.width - 4;
+    const newHeight = rect.height - 4;
+    if (Math.abs(canvas.width - newWidth) > 5 || Math.abs(canvas.height - newHeight) > 5) {
+      const oldData = canvas.toDataURL();
+      canvas.width = newWidth || 700;
+      canvas.height = newHeight || 420;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      if (oldData && oldData !== 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==') {
+        applyCanvasData(oldData);
+      }
+    }
+  }
+  updateDrawingUI();
+}
+
+function updateDrawingUI() {
+  const currentDrawerId = state.turnOrder[state.currentTurnIdx];
+  const currentDrawer = getPlayer(currentDrawerId);
+  const isMyTurn = currentDrawerId === state.myId && !isEliminated(state.myId);
+  
+  if (state.isHost && !isMyTurn && state.phase === 'drawing') {
+    timerValue = state.settings.drawTime;
+    updateTimerUI();
+  }
+
+  document.getElementById('currentDrawerEmoji').textContent = currentDrawer?.avatar || '🎨';
+  document.getElementById('currentDrawerName').textContent = (isMyTurn && !state.isHost) ? 'You!' : (currentDrawer?.name || '...');
+
+  const dots = document.getElementById('turnOrderDots');
+  dots.innerHTML = state.turnOrder.map((id, i) => {
+    let cls = 'turn-dot-small';
+    if (i < state.currentTurnIdx) cls += ' done';
+    else if (i === state.currentTurnIdx) cls += ' current';
+    return `<div class="${cls}" title="${getPlayer(id)?.name || ''}"></div>`;
+  }).join('');
+
+  const wordHintCard = document.getElementById('wordHintCard');
+  const myWord = isImpostor(state.myId) ? state.impostorWord : state.word;
+  document.getElementById('wordHintText').textContent = myWord;
+
+  const activePlayers = state.players.filter(p => !isEliminated(p.id));
+  const miniList = document.getElementById('miniPlayerList');
+  miniList.innerHTML = activePlayers.map(p => `
+    <div class="mini-player ${p.id === currentDrawerId ? 'active' : ''} ${isEliminated(p.id) ? 'eliminated' : ''}">
+      <div class="mini-avatar" style="background:${p.color}20;color:${p.color}">${p.avatar}</div>
+      <span>${p.name}${p.id === state.myId ? ' (you)' : ''}</span>
+      ${p.id === currentDrawerId ? '<div class="turn-dot"></div>' : ''}
+    </div>
+  `).join('');
+
+  document.getElementById('roundIndicator').textContent = state.round;
+  document.getElementById('totalRoundIndicator').textContent = state.settings.numRounds;
+
+  canDraw = isMyTurn && !isEliminated(state.myId);
+  const overlay = document.getElementById('canvasOverlay');
+  const toolbar = document.getElementById('drawToolbar');
+
+  if (canDraw) {
+    overlay.classList.add('hidden');
+    toolbar.style.opacity = '1';
+    toolbar.style.pointerEvents = 'auto';
+    document.getElementById('drawHintLeft').textContent = `✏️ Your turn to draw!`;
+    document.getElementById('drawHintRight').textContent = `Word: ${myWord}`;
+    if (!state.isHost && !timerInterval) {
+      startTurnTimerLocal();
+    }
+  } else {
+    overlay.classList.remove('hidden');
+    if (isEliminated(state.myId)) {
+      document.getElementById('overlayText').textContent = `❌ You've been eliminated!`;
+      document.getElementById('overlaySub').textContent = 'Watch the remaining players draw...';
+    } else {
+      document.getElementById('overlayText').textContent = `${currentDrawer?.avatar || '🎨'} ${currentDrawer?.name || 'Someone'} is drawing...`;
+      document.getElementById('overlaySub').textContent = 'Watch carefully! Who might be the impostor?';
+    }
+    toolbar.style.opacity = '0.4';
+    toolbar.style.pointerEvents = 'none';
+    document.getElementById('drawHintLeft').textContent = 'Guess the word & find the impostor!';
+    document.getElementById('drawHintRight').textContent = `Round ${state.round}/${state.settings.numRounds}`;
+  }
+}
+
+function updateTimerUI() {
+  const el = document.getElementById('timerText');
+  const circle = document.getElementById('timerCircle');
+  if (!el || !circle) return;
+  el.textContent = timerValue;
+  const total = state.settings.drawTime;
+  const ratio = Math.max(0, Math.min(1, timerValue / total));
+  const circumference = 182;
+  circle.style.strokeDashoffset = circumference * (1 - ratio);
+  circle.style.stroke = ratio > 0.5 ? 'var(--accent3)' : ratio > 0.25 ? 'var(--accent2)' : 'var(--accent)';
+  el.style.color = ratio > 0.25 ? 'var(--text)' : 'var(--accent)';
+}
+
+function startDraw(e) {
+  if (!canDraw) return;
+  drawing = true;
+  lastX = e.offsetX;
+  lastY = e.offsetY;
+}
+
+function doDraw(e) {
+  if (!drawing || !canDraw || !ctx) return;
+  const x = e.offsetX;
+  const y = e.offsetY;
+  
+  ctx.beginPath();
+  ctx.moveTo(lastX, lastY);
+  ctx.lineTo(x, y);
+  ctx.strokeStyle = tool === 'eraser' ? '#ffffff' : brushColor;
+  ctx.lineWidth = tool === 'eraser' ? brushSize * 3 : brushSize;
+  ctx.stroke();
+
+  const now = Date.now();
+  if (now - lastBroadcastTime > BROADCAST_THROTTLE) {
+    channel?.postMessage({
+      type: 'CANVAS_STROKE',
+      senderId: state.myId,
+      x1: lastX, y1: lastY, x2: x, y2: y,
+      color: tool === 'eraser' ? '#ffffff' : brushColor,
+      size: tool === 'eraser' ? brushSize * 3 : brushSize
+    });
+    lastBroadcastTime = now;
+  }
+
+  lastX = x;
+  lastY = y;
+}
+
+function stopDraw() { drawing = false; }
+
+function drawRemoteStroke(msg) {
+  if (!ctx) return;
+  ctx.beginPath();
+  ctx.moveTo(msg.x1, msg.y1);
+  ctx.lineTo(msg.x2, msg.y2);
+  ctx.strokeStyle = msg.color;
+  ctx.lineWidth = msg.size;
+  ctx.stroke();
+}
+
+function applyCanvasData(dataURL) {
+  const img = new Image();
+  img.onload = () => {
+    if (ctx) {
+      ctx.drawImage(img, 0, 0, ctx.canvas.width, ctx.canvas.height);
+    }
+  };
+  img.src = dataURL;
+}
+
+function setTool(t) {
+  tool = t;
+  document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('tool-' + t);
+  if (btn) btn.classList.add('active');
+}
+
+function setColor(c) {
+  brushColor = c;
+  setTool('pen');
+  document.querySelectorAll('.color-swatch').forEach(s => {
+    s.classList.toggle('active', s.dataset.color === c);
+  });
+  const picker = document.getElementById('colorPicker');
+  if (picker) picker.value = c;
+}
+
+function clearCanvas() {
+  if (!ctx) return;
+  const canvas = document.getElementById('gameCanvas');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  channel?.postMessage({
+    type: 'CANVAS_STROKE',
+    senderId: state.myId,
+    clear: true
+  });
+}
+
+function endMyTurn() {
+  const canvas = document.getElementById('gameCanvas');
+  const dataURL = canvas.toDataURL();
+  channel?.postMessage({ type: 'CANVAS_UPDATE', senderId: state.myId, dataURL });
+  broadcast({ type: 'TURN_DONE' });
+  canDraw = false;
+  const overlay = document.getElementById('canvasOverlay');
+  if (overlay) {
+    overlay.classList.remove('hidden');
+    document.getElementById('overlayText').textContent = '✅ Done! Waiting for next player...';
+    document.getElementById('overlaySub').textContent = '';
+  }
+  clearInterval(timerInterval);
+  timerInterval = null;
+}
+
+// ---- VOTING ----
+function renderVoting() {
+  document.getElementById('voteRoundNum').textContent = state.round;
+  const grid = document.getElementById('voteGrid');
+  const activePlayers = state.players.filter(p => !isEliminated(p.id) && p.id !== state.myId);
+  const myVote = state.votes[state.myId];
+  const isElim = isEliminated(state.myId);
+
+  grid.innerHTML = activePlayers.map(p => `
+    <div class="vote-card ${myVote === p.id ? 'voted' : ''} ${isElim ? 'cannot-vote' : ''}" 
+         onclick="${isElim ? '' : `window.castVote('${p.id}')`}">
+      <div class="vote-avatar" style="background:${p.color}20;color:${p.color}">${p.avatar}</div>
+      <div>
+        <div class="vote-name">${p.name}</div>
+        <div style="font-size:0.75rem;color:var(--text-dim)">Click to vote</div>
+      </div>
+      ${myVote === p.id ? '<div style="color:var(--accent4);font-size:1.5rem">✓</div>' : ''}
+    </div>
+  `).join('');
+
+  const status = document.getElementById('voteStatus');
+  const voted = Object.keys(state.votes).length;
+  const total = state.players.filter(p => !isEliminated(p.id)).length;
+  status.textContent = `${voted} / ${total} players voted`;
+
+  if (isElim) {
+    status.textContent = "You're eliminated — watching the vote!";
+  }
+}
+
+function castVote(targetId) {
+  if (isEliminated(state.myId)) return;
+  if (state.votes[state.myId]) return;
+  broadcast({ type: 'VOTE_CAST', voterId: state.myId, targetId });
+  notify("Vote cast! 🗳️", 'success');
+  renderVoting();
+}
+
+// ---- VOTE RESULT ----
+function renderVoteResult() {
+  const eliminated = state.lastEliminated;
+  const eliminatedPlayer = eliminated ? getPlayer(eliminated) : null;
+  const type = state.voteResultType;
+  const banner = document.getElementById('resultBanner');
+  const icon = document.getElementById('resultIcon');
+  const title = document.getElementById('resultTitle');
+  const desc = document.getElementById('resultDesc');
+
+  if (type === 'impostor_caught' || type === 'impostors_caught') {
+    banner.className = 'result-banner correct';
+    icon.textContent = '🎉';
+    title.textContent = type === 'impostors_caught' ? 'All Impostors Found!' : 'Impostor Caught!';
+    desc.textContent = `${eliminatedPlayer?.name || '?'} was indeed the impostor!`;
+  } else if (type === 'wrong') {
+    banner.className = 'result-banner incorrect';
+    icon.textContent = '😬';
+    title.textContent = 'Wrong Guess!';
+    desc.textContent = `${eliminatedPlayer?.name || '?'} was innocent. The impostors are still among you!`;
+  } else {
+    banner.className = 'result-banner';
+    icon.textContent = '🤝';
+    title.textContent = 'It\'s a Tie!';
+    desc.textContent = 'No one was eliminated this round.';
+  }
+
+  const reveal = document.getElementById('impostorReveal');
+  const voteCounts = state.lastVoteCounts || {};
+  const activePlayers = state.players.filter(p => !isEliminated(p.id) || p.id === eliminated);
+  const totalVotes = Object.values(voteCounts).reduce((a,b) => a + b, 0);
+
+  reveal.innerHTML = `<div style="font-weight:800;margin-bottom:12px;color:var(--text-dim);font-size:0.8rem;text-transform:uppercase;letter-spacing:2px">Vote Results</div>` +
+    activePlayers.map(p => {
+      const votes = voteCounts[p.id] || 0;
+      const pct = totalVotes > 0 ? (votes / totalVotes) * 100 : 0;
+      return `
+        <div class="impostor-item">
+          <div class="vote-avatar" style="background:${p.color}20;color:${p.color};width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center">${p.avatar}</div>
+          <div style="flex:1">
+            <div style="font-weight:700;font-size:0.9rem">${p.name} ${p.id === state.myId ? '(you)' : ''}</div>
+            <div class="vote-bar-wrap"><div class="vote-bar" style="width:${pct}%"></div></div>
+          </div>
+          <div class="vote-count">${votes} vote${votes !== 1 ? 's' : ''}</div>
+          <div class="impostor-badge ${isImpostor(p.id) ? 'badge-impostor' : 'badge-crewmate'}">${isImpostor(p.id) ? '🕵️ Impostor' : '👤 Crewmate'}</div>
+        </div>
+      `;
+    }).join('');
+
+  const remainingImpostors = state.impostors.filter(id => !isEliminated(id));
+  const continueNote = document.getElementById('resultContinueNote');
+  const btnWrap = document.getElementById('resultBtnWrap');
+
+  if (remainingImpostors.length === 0) {
+    continueNote.textContent = '🎉 All impostors eliminated! Crewmates win!';
+    btnWrap.innerHTML = `<button class="btn btn-success" onclick="window.goToGameOver()">🏆 See Final Results</button>`;
+  } else {
+    const roundsLeft = state.settings.numRounds - state.round;
+    if (roundsLeft <= 0) {
+      continueNote.textContent = `Game over after this! ${remainingImpostors.length} impostor(s) survived.`;
+      btnWrap.innerHTML = `<button class="btn btn-primary" onclick="window.goToGameOver()">📊 See Final Results</button>`;
+    } else {
+      continueNote.textContent = `${remainingImpostors.length} impostor(s) still at large. ${roundsLeft} round(s) left!`;
+      btnWrap.innerHTML = state.isHost
+        ? `<button class="btn btn-secondary" onclick="window.nextRound()">▶ Next Round</button>`
+        : `<div style="color:var(--text-dim);font-size:0.9rem">⏳ Waiting for host to continue...</div>`;
+    }
+  }
+}
+
+function nextRound() {
+  if (!state.isHost) return;
+  if (ctx) {
+    const canvas = document.getElementById('gameCanvas');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+  startRound();
+}
+
+function goToGameOver() {
+  if (state.isHost) {
+    endGame();
+  } else {
+    showScreen('gameover');
+    renderGameOver();
+  }
+}
+
+// ---- GAME OVER ----
+function renderGameOver() {
+  const winner = state.winner;
+  const banner = document.getElementById('gameOverBanner');
+  const icon = document.getElementById('gameOverIcon');
+  const title = document.getElementById('gameOverTitle');
+  const desc = document.getElementById('gameOverDesc');
+
+  if (winner === 'crewmates') {
+    banner.className = 'result-banner correct';
+    icon.textContent = '🎉';
+    title.textContent = 'Crewmates Win!';
+    desc.textContent = 'All impostors were found! Great teamwork!';
+  } else {
+    banner.className = 'result-banner incorrect';
+    icon.textContent = '🕵️';
+    title.textContent = 'Impostors Win!';
+    desc.textContent = 'The impostors successfully hid among the crew!';
+  }
+
+  const sorted = [...state.players].sort((a, b) => (state.scores[b.id] || 0) - (state.scores[a.id] || 0));
+  const rankEmojis = ['🥇','🥈','🥉'];
+  document.getElementById('scoreList').innerHTML = sorted.map((p, i) => `
+    <div class="score-item">
+      <div class="score-rank">${rankEmojis[i] || `${i+1}th`}</div>
+      <div class="vote-avatar" style="background:${p.color}20;color:${p.color};width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center">${p.avatar}</div>
+      <div class="score-name">
+        ${p.name} ${p.id === state.myId ? '<span style="color:var(--accent4)">(you)</span>' : ''}
+        <div style="font-size:0.75rem;color:var(--text-dim)">${isImpostor(p.id) ? '🕵️ Was Impostor' : '👤 Crewmate'}</div>
+      </div>
+      <div class="score-pts">${state.scores[p.id] || 0} pts</div>
+    </div>
+  `).join('');
+}
+
+function backToHome() {
+  state = {
+    roomCode: '', isHost: false, myId: '', myName: '',
+    players: [], settings: { maxPlayers: 6, impostorCount: 1, drawTime: 30, numRounds: 3 },
+    phase: 'lobby', round: 0, impostors: [], word: '', impostorWord: '',
+    turnOrder: [], currentTurnIdx: 0, votes: {}, readyPlayers: [],
+    eliminated: [], scores: {}, canvasDataURL: null,
+  };
+  if (channel) { channel.close(); channel = null; }
+  if (ctx) ctx = null;
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = null;
+  showScreen('home');
+}
+
+// ---- PEEK MODAL ----
+function showPeek() {
+  const impostor = isImpostor(state.myId);
+  const myWord = impostor ? state.impostorWord : state.word;
+  document.getElementById('peekIcon').textContent = impostor ? '🕵️' : '🎨';
+  document.getElementById('peekTitle').textContent = impostor ? 'You\'re the Impostor!' : 'Your Word';
+  document.getElementById('peekContent').innerHTML = `<div style="font-family:'Fredoka One',cursive;font-size:2rem;color:var(--accent2);margin:12px 0">${myWord}</div>
+    <div style="color:var(--text-dim)">${impostor ? '⚠️ You have a DIFFERENT word than others!' : '✅ This is the real word.'}</div>`;
+  document.getElementById('peekModal').classList.remove('hidden');
+}
+
+function closePeek() {
+  document.getElementById('peekModal').classList.add('hidden');
+}
+
+// ---- MAIN RENDER ROUTER ----
+function renderPhase() {
+  switch (state.phase) {
+    case 'lobby':
+      renderLobby();
+      showScreen('lobby');
+      break;
+    case 'roleReveal':
+      renderRoleReveal();
+      showScreen('role');
+      break;
+    case 'drawing':
+      showScreen('draw');
+      renderDrawing();
+      break;
+    case 'voting':
+      renderVoting();
+      showScreen('vote');
+      break;
+    case 'voteResult':
+      renderVoteResult();
+      showScreen('voteResult');
+      break;
+    case 'gameover':
+      renderGameOver();
+      showScreen('gameover');
+      break;
+  }
+}
+
+function updateUI() {
+  switch (state.phase) {
+    case 'lobby': renderLobby(); break;
+    case 'drawing': updateDrawingUI(); break;
+    case 'voting': renderVoting(); break;
+    case 'voteResult': renderVoteResult(); break;
+    case 'gameover': renderGameOver(); break;
+  }
+}
+
+// ---- INITIALIZATION ----
+window.switchTab = switchTab;
+window.hostGame = hostGame;
+window.joinGame = joinGame;
+window.requestStart = requestStart;
+window.readyUp = readyUp;
+window.setTool = setTool;
+window.setColor = setColor;
+window.clearCanvas = clearCanvas;
+window.castVote = castVote;
+window.nextRound = nextRound;
+window.goToGameOver = goToGameOver;
+window.backToHome = backToHome;
+window.showPeek = showPeek;
+window.closePeek = closePeek;
+
+window.addEventListener('load', () => {
+  showScreen('home');
+  
+  const brushSizeSlider = document.getElementById('brushSize');
+  if (brushSizeSlider) {
+    brushSizeSlider.addEventListener('input', function() {
+      brushSize = parseInt(this.value);
+    });
+  }
+  
+  const peekBtn = document.createElement('button');
+  peekBtn.className = 'btn btn-ghost btn-sm';
+  peekBtn.style.cssText = 'position:fixed;bottom:20px;right:20px;width:auto;z-index:100;opacity:0.8';
+  peekBtn.textContent = '🔍 Peek My Word';
+  peekBtn.onclick = showPeek;
+  document.body.appendChild(peekBtn);
+});
+
+window.addEventListener('beforeunload', () => {
+  if (state.roomCode && channel) {
+    channel.postMessage({ type: 'PLAYER_LEAVE', senderId: state.myId, playerId: state.myId });
+  }
+});
+
+let resizeTimeout;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(() => {
+    if (state.phase === 'drawing' && ctx) {
+      const canvas = document.getElementById('gameCanvas');
+      const container = document.getElementById('canvasContainer');
+      const rect = container.getBoundingClientRect();
+      const oldData = canvas.toDataURL();
+      canvas.width = rect.width - 4 || 700;
+      canvas.height = rect.height - 4 || 420;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      if (oldData !== 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==') {
+        applyCanvasData(oldData);
+      }
+    }
+  }, 100);
+});
+
+document.getElementById('brushSize')?.addEventListener('input', function() {
+  brushSize = parseInt(this.value);
+});
+</script>
+</body>
+</html>
